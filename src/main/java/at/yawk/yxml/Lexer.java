@@ -215,4 +215,8 @@ public class Lexer {
     }
     
     private final char[] singleCharacterArray = new char[1];
+
+    public String getAttribute(String key) {
+        return getAttributes().get(key);
+    }
 }
