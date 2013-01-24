@@ -15,7 +15,7 @@ import java.util.Map;
 public class Lexer {
     public static void main(String[] args) throws IOException {
         final Lexer yxml = new Lexer(new URL("http://yawk.at/").openStream());
-        while(yxml.next()) {
+        while(yxml.getNext()) {
             if(!yxml.isEmpty() && yxml.isTag() && !yxml.isEndTagOnly())
                 System.out.println(yxml.getLowercaseTagName() + ": " + yxml.getAttributes());
         }
@@ -56,7 +56,7 @@ public class Lexer {
     private Map<String, String> attributes         = null;
     private String              tagName            = null;
     
-    public boolean next() throws IOException {
+    public boolean getNext() throws IOException {
         if(isEOF)
             return false;
         final StringBuilder builder = new StringBuilder();
