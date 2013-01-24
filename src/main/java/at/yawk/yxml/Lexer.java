@@ -13,19 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Lexer {
-    public static void main(String[] args) throws IOException {
-        final Lexer yxml = new Lexer(new URL("http://yawk.at/").openStream());
-        while(yxml.getNext()) {
-            if(!yxml.isEmpty() && yxml.isTag() && !yxml.isEndTagOnly())
-                System.out.println(yxml.getLowercaseTagName() + ": " + yxml.getAttributes());
-        }
-    }
-    
-    public static final int TAG_START    = 0;
-    public static final int TAG_END      = 1;
-    public static final int TEXT         = 2;
-    public static final int DOCUMENT_END = 3;
-    
     private final Reader    input;
     
     public Lexer(Reader input) {
