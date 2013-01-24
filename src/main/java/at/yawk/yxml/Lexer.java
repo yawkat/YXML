@@ -28,7 +28,7 @@ public class Lexer {
     }
     
     public Lexer(URLConnection connection) throws IOException {
-        this(connection.getInputStream(), connection.getContentEncoding());
+        this(connection.getInputStream());
     }
     
     public Lexer(URL url) throws IOException {
