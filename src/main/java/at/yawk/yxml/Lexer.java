@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Lexer {
-    private final Reader    input;
+    private final Reader input;
     
     public Lexer(Reader input) {
         this.input = input;
@@ -43,6 +43,12 @@ public class Lexer {
     private Map<String, String> attributes         = null;
     private String              tagName            = null;
     
+    /**
+     * Continue reading the stream.
+     * 
+     * @return <code>false</code> if there are no new elements available.
+     * @throws IOException
+     */
     public boolean getNext() throws IOException {
         if(isEOF)
             return false;
@@ -120,91 +126,8 @@ public class Lexer {
     
     private void parseTag() {
         if(attributes == null) {
-            attributes = new HashMap<String, String>();
-            final char[] characters = currentElementData.toCharArray();
-            boolean isCompact = characters.length > 0 && characters[characters.length - 1] == '/';
-            char usingQuotes = 0;
-            boolean escaping = false;
-            boolean inName = true;
-            boolean inKey = true;
-            StringBuilder tname = new StringBuilder();
-            StringBuilder key = new StringBuilder();
-            StringBuilder value = null;
-            for(int i = 0; i < characters.length; i++) {
-                final char c = characters[i];
-                if(inName) {
-                    if(c == ' ') {
-                        inName = false;
-                    } else {
-                        tname.append(c);
-                    }
-                } else {
-                    if(inKey) {
-                        if(c == ' ') {
-                            if(key.length() != 0) {
-                                attributes.put(key.toString(), null);
-                                key = new StringBuilder();
-                            }
-                        } else if(c == '=') {
-                            inKey = false;
-                            value = new StringBuilder();
-                            if(i < characters.length - 1) {
-                                final char d = characters[++i];
-                                if(d == '"' || d == '\'') {
-                                    usingQuotes = d;
-                                } else if(d == ' ') {
-                                    attributes.put(key.toString(), "");
-                                    key = new StringBuilder();
-                                    inKey = true;
-                                } else {
-                                    value.append(d);
-                                }
-                            }
-                        } else {
-                            key.append(c);
-                        }
-                    } else {
-                        if(usingQuotes != 0) {
-                            if(c == usingQuotes) {
-                                if(escaping) {
-                                    escaping = false;
-                                    value.append(c);
-                                } else {
-                                    attributes.put(key.toString(), value.toString());
-                                    key = new StringBuilder();
-                                    value = new StringBuilder();
-                                    inKey = true;
-                                }
-                            } else if(c == '\\') {
-                                if(escaping) {
-                                    escaping = false;
-                                    value.append("\\\\");
-                                } else {
-                                    escaping = true;
-                                }
-                            } else {
-                                if(escaping) {
-                                    escaping = false;
-                                    value.append('\\');
-                                }
-                                value.append(c);
-                            }
-                        } else {
-                            if(c == ' ') {
-                                attributes.put(key.toString(), value.toString());
-                                key = new StringBuilder();
-                                value = new StringBuilder();
-                                inKey = true;
-                            } else {
-                                value.append(c);
-                            }
-                        }
-                    }
-                }
-            }
-            if(key.length() != 0 && !isCompact)
-                attributes.put(key.toString(), value == null ? null : value.toString());
-            this.tagName = tname.toString();
+            attributes = parseTag(this.currentElementData);
+            this.tagName = attributes.remove(null);
         }
     }
     
@@ -215,8 +138,105 @@ public class Lexer {
     }
     
     private final char[] singleCharacterArray = new char[1];
-
+    
     public String getAttribute(String key) {
         return getAttributes().get(key);
+    }
+    
+    static Map<String, String> parseTag(String currentElementData) {
+        final Map<String, String> attributes = new HashMap<String, String>();
+        final char[] characters = currentElementData.toCharArray();
+        boolean isCompact = characters.length > 0 && characters[characters.length - 1] == '/';
+        char usingQuotes = 0;
+        boolean escaping = false;
+        boolean inName = true;
+        boolean inKey = true;
+        StringBuilder tname = new StringBuilder();
+        StringBuilder key = new StringBuilder();
+        StringBuilder value = null;
+        for(int i = 0; i < characters.length; i++) {
+            final char c = characters[i];
+            if(inName) {
+                if(c == ' ') {
+                    inName = false;
+                } else {
+                    tname.append(c);
+                }
+            } else {
+                if(inKey) {
+                    if(c == ' ') {
+                        if(key.length() != 0) {
+                            attributes.put(key.toString(), null);
+                            key = new StringBuilder();
+                        }
+                    } else if(c == '=') {
+                        inKey = false;
+                        value = new StringBuilder();
+                        if(i < characters.length - 1) {
+                            final char d = characters[++i];
+                            if(d == '"' || d == '\'') {
+                                usingQuotes = d;
+                            } else if(d == ' ') {
+                                attributes.put(key.toString(), "");
+                                key = new StringBuilder();
+                                inKey = true;
+                            } else {
+                                value.append(d);
+                            }
+                        }
+                    } else {
+                        key.append(c);
+                    }
+                } else {
+                    if(usingQuotes != 0) {
+                        if(c == usingQuotes) {
+                            if(escaping) {
+                                escaping = false;
+                                value.append(c);
+                            } else {
+                                attributes.put(key.toString(), value.toString());
+                                key = new StringBuilder();
+                                value = new StringBuilder();
+                                inKey = true;
+                            }
+                        } else if(c == '\\') {
+                            if(escaping) {
+                                escaping = false;
+                                value.append("\\\\");
+                            } else {
+                                escaping = true;
+                            }
+                        } else {
+                            if(escaping) {
+                                escaping = false;
+                                value.append('\\');
+                            }
+                            value.append(c);
+                        }
+                    } else {
+                        if(c == ' ') {
+                            attributes.put(key.toString(), value.toString());
+                            key = new StringBuilder();
+                            value = new StringBuilder();
+                            inKey = true;
+                        } else {
+                            value.append(c);
+                        }
+                    }
+                }
+            }
+        }
+        if(key.length() != 0 && !isCompact)
+            attributes.put(key.toString(), value == null ? null : value.toString());
+        attributes.put(null, tname.toString());
+        return attributes;
+    }
+    
+    Map<String, String> getAttributesParsed() {
+        return attributes;
+    }
+    
+    String getTagNameParsed() {
+        return tagName;
     }
 }
