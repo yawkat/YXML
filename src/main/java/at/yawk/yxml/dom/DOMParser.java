@@ -47,7 +47,7 @@ public class DOMParser {
     }
     
     private static DOMNode findParent(DOMNode tree, String tagType) {
-        if (tree == null) {
+        if (tree == null || tree.getElement() == null) {
             return null;
         } else if (((TagNode) tree.getElement()).getTagName().equals(tagType)) {
             return tree;
