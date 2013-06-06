@@ -3,7 +3,7 @@
 	<groupId>at.yawk.yxml</groupId>
 	<artifactId>yxml</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0</version>
+	<version>2.0</version>
 	<name>YXML</name>
 	<url>http://yawk.at/</url>
 	<build>

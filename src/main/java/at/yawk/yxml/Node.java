@@ -1,71 +1,130 @@
 package at.yawk.yxml;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class Node {
-    private final String        currentElementData;
-    private Map<String, String> attributes;
-    private String              tagName;
+import at.yawk.yxml.TagNode.Attribute;
+import at.yawk.yxml.TagNode.TagType;
+
+/**
+ * Any node in an XML document.
+ */
+public abstract class Node {
+    private String content;
     
-    private final boolean       isTag;
-    
-    private Node(Lexer l) {
-        this.currentElementData = l.getCurrentElementContent();
-        this.isTag = l.isTag();
-        this.attributes = l.getAttributesParsed();
-        this.tagName = l.getTagName();
+    public Node(String content) {
+        this.setContent(content);
     }
     
+    /**
+     * Returns the raw content of this node, without any parsing or formatting
+     * applied to it.
+     */
+    public String getRawContent() {
+        return content;
+    }
+    
+    protected void setContent(String content) {
+        this.content = content;
+    }
+    
+    // compatibility
+    
+    /**
+     * @deprecated Use {@link Lexer#next()} instead.
+     */
+    @Deprecated
     public static Node getCurrentNode(Lexer lexer) {
-        return new Node(lexer);
+        return lexer.currentNode;
     }
     
+    /**
+     * @deprecated Use {@link #getRawContent()} instead.
+     */
+    @Deprecated
     public String getCurrentElementContent() {
-        return currentElementData;
+        return getRawContent();
     }
     
+    @Deprecated
     public String getCurrentElement() {
-        return isTag() ? '<' + currentElementData + '>' : currentElementData;
+        return isTag() ? "<" + getCurrentElementContent() + ">" : getCurrentElementContent();
     }
     
+    /**
+     * @deprecated Use {@link Lexer#setCleanupWhitespace(boolean)} to ignore
+     *             whitespace.
+     */
+    @Deprecated
     public boolean isEmpty() {
-        return !isTag() && currentElementData.trim().length() == 0;
+        return this instanceof TextNode && ((TextNode) this).getText().trim().isEmpty();
     }
     
-    public boolean isEndTagOnly() {
-        return isTag() && currentElementData.length() > 0 && currentElementData.charAt(0) == '/';
-    }
-    
-    public boolean isCompactTag() {
-        return isTag() && currentElementData.length() > 0 && currentElementData.charAt(currentElementData.length() - 1) == '/';
-    }
-    
+    /**
+     * @deprecated Check for {@link TagNode} instead.
+     */
+    @Deprecated
     public boolean isTag() {
-        return isTag;
+        return this instanceof TagNode;
     }
     
+    /**
+     * @deprecated Use {@link TagNode#getType()} instead.
+     */
+    @Deprecated
+    public boolean isEndTagOnly() {
+        return isTag() && ((TagNode) this).getType() == TagType.END;
+    }
+    
+    /**
+     * @deprecated Use {@link TagNode#getType()} instead.
+     */
+    @Deprecated
+    public boolean isCompactTag() {
+        return isTag() && ((TagNode) this).getType() == TagType.START_END;
+    }
+    
+    /**
+     * @deprecated Use {@link TagNode#getTagName()} instead.
+     */
+    @Deprecated
+    public String getTagName() {
+        if (!isTag()) {
+            throw new IllegalStateException("Not a tag");
+        }
+        return ((TagNode) this).getTagName();
+    }
+    
+    /**
+     * @deprecated Use {@link TagNode#getTagName()} instead.
+     */
+    @Deprecated
     public String getLowercaseTagName() {
         return getTagName().toLowerCase();
     }
     
-    public String getTagName() {
-        if(!isTag())
+    /**
+     * @deprecated Use {@link TagNode#getAttributes()} instead.
+     */
+    @Deprecated
+    public Map<String, String> getAttributesMap() {
+        if (!isTag()) {
             throw new IllegalStateException("Not a tag");
-        parseTag();
-        return tagName;
-    }
-    
-    public Map<String, String> getAttributes() {
-        if(!isTag())
-            throw new IllegalStateException("Not a tag");
-        parseTag();
-        return attributes;
-    }
-    
-    private void parseTag() {
-        if(attributes == null) {
-            attributes = Lexer.parseTag(this.currentElementData);
-            this.tagName = attributes.remove(null);
         }
+        final List<Attribute> l = ((TagNode) this).getAttributes();
+        final Map<String, String> m = new HashMap<String, String>(l.size());
+        for (Attribute a : l) {
+            m.put(a.getKey(), a.getValue());
+        }
+        return m;
+    }
+    
+    /**
+     * @deprecated Use {@link TagNode#getAttributes()} instead.
+     */
+    @Deprecated
+    public String getAttribute(String key) {
+        return getAttributesMap().get(key);
     }
 }
