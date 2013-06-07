@@ -14,4 +14,8 @@ public class TextNode extends Node {
     public String getText() {
         return getRawContent();
     }
+    
+    public String getUnescapedText(EntityNamespace entities) {
+        return XmlUtil.unescapeXml(getText(), entities);
+    }
 }
