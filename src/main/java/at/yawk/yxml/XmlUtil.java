@@ -107,6 +107,22 @@ public class XmlUtil {
         }
     }
     
+    public static String unescapeXml(String s, EntityNamespace entities) {
+        final StringBuilder b = new StringBuilder(s.length());
+        final char[] as = s.toCharArray();
+        for (int i = 0; i < as.length; i++) {
+            char c = as[i];
+            if (c == '&') {
+                int j = ++i;
+                for (; i < as.length && as[i] != ';'; i++);
+                b.append(getEntityValue(new String(as, j, i - j), entities));
+            } else {
+                b.append(c);
+            }
+        }
+        return b.toString();
+    }
+    
     private static boolean intervalContains(int start, int end, int search) {
         assert start <= end;
         return start <= search && end >= search;
