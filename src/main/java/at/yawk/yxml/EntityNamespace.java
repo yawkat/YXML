@@ -1,5 +1,6 @@
 package at.yawk.yxml;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +11,7 @@ public class EntityNamespace implements Cloneable {
     /**
      * Default XML namespace as specified by the W3C XML conventions.
      */
-    public static final EntityNamespace DEFAULT_XML_NAMESPACE = new EntityNamespace();
+    public static final EntityNamespace DEFAULT_XML_NAMESPACE = new EntityNamespace(Collections.<String, String> emptyMap());
     
     private final Map<String, String> entities;
     private boolean modifiable = true;
